@@ -27,6 +27,15 @@ describe('updateCandidateStageController', () => {
     expect(mockUpdateCandidateStage).not.toHaveBeenCalled();
   });
 
+  test('returns 400 for partially numeric candidate id "1abc"', async () => {
+    const req = { params: { id: '1abc' }, body: validBody } as unknown as Request;
+    const res = makeRes();
+    await updateCandidateStageController(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Invalid candidate ID format' });
+    expect(mockUpdateCandidateStage).not.toHaveBeenCalled();
+  });
+
   test('returns 400 when applicationId is missing from body', async () => {
     const req = { params: { id: '1' }, body: { currentInterviewStep: 3 } } as unknown as Request;
     const res = makeRes();

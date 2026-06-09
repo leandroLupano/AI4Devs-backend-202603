@@ -25,6 +25,15 @@ describe('getPositionCandidatesController', () => {
     expect(mockGetPositionCandidates).not.toHaveBeenCalled();
   });
 
+  test('returns 400 for partially numeric id "1abc"', async () => {
+    const req = { params: { id: '1abc' } } as unknown as Request;
+    const res = makeRes();
+    await getPositionCandidatesController(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Invalid position ID format' });
+    expect(mockGetPositionCandidates).not.toHaveBeenCalled();
+  });
+
   test('returns 200 with candidate list including applicationId', async () => {
     const mockResult = [
       {
