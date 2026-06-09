@@ -61,4 +61,3 @@ export const updateCandidateStageController = async (req: Request, res: Response
     }
 };
 
-export { addCandidate };

@@ -1,7 +1,6 @@
 jest.mock('@prisma/client', () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({
     position: { findUnique: jest.fn() },
-    application: { findMany: jest.fn() },
   })),
 }));
 
@@ -21,12 +20,14 @@ describe('getPositionCandidates', () => {
 
   const mockApplications = [
     {
+      id: 1,
       candidateId: 10,
       candidate: { firstName: 'John', lastName: 'Doe' },
       interviewStep: { id: 3, name: 'Technical Interview' },
       interviews: [{ score: 8 }, { score: 7 }],
     },
     {
+      id: 2,
       candidateId: 11,
       candidate: { firstName: 'Jane', lastName: 'Smith' },
       interviewStep: { id: 2, name: 'Phone Screen' },
@@ -34,20 +35,24 @@ describe('getPositionCandidates', () => {
     },
   ];
 
-  test('returns correctly shaped array with full name, step, and average score', async () => {
-    (prisma.position.findUnique as jest.Mock).mockResolvedValue(mockPosition);
-    (prisma.application.findMany as jest.Mock).mockResolvedValue(mockApplications);
+  test('returns correctly shaped array with applicationId, full name, step, and average score', async () => {
+    (prisma.position.findUnique as jest.Mock).mockResolvedValue({
+      ...mockPosition,
+      applications: mockApplications,
+    });
 
     const result = await getPositionCandidates(positionId);
 
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
+      applicationId: 1,
       candidateId: 10,
       fullName: 'John Doe',
       currentInterviewStep: { id: 3, name: 'Technical Interview' },
       averageScore: 7.5,
     });
     expect(result[1]).toEqual({
+      applicationId: 2,
       candidateId: 11,
       fullName: 'Jane Smith',
       currentInterviewStep: { id: 2, name: 'Phone Screen' },
@@ -58,14 +63,17 @@ describe('getPositionCandidates', () => {
   test('returns averageScore null when all interview scores are null', async () => {
     const appsWithNullScores = [
       {
+        id: 3,
         candidateId: 10,
         candidate: { firstName: 'John', lastName: 'Doe' },
         interviewStep: { id: 3, name: 'Technical Interview' },
         interviews: [{ score: null }, { score: null }],
       },
     ];
-    (prisma.position.findUnique as jest.Mock).mockResolvedValue(mockPosition);
-    (prisma.application.findMany as jest.Mock).mockResolvedValue(appsWithNullScores);
+    (prisma.position.findUnique as jest.Mock).mockResolvedValue({
+      ...mockPosition,
+      applications: appsWithNullScores,
+    });
 
     const result = await getPositionCandidates(positionId);
 
@@ -73,8 +81,10 @@ describe('getPositionCandidates', () => {
   });
 
   test('returns empty array when position has no applications', async () => {
-    (prisma.position.findUnique as jest.Mock).mockResolvedValue(mockPosition);
-    (prisma.application.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.position.findUnique as jest.Mock).mockResolvedValue({
+      ...mockPosition,
+      applications: [],
+    });
 
     const result = await getPositionCandidates(positionId);
 
