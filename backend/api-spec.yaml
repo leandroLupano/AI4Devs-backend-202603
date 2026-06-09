@@ -19,13 +19,13 @@ paths:
                   type: string
                   description: First name of the candidate
                   minLength: 2
-                  maxLength: 50
+                  maxLength: 100
                   pattern: '^[a-zA-ZñÑáéíóúÁÉÍÓÚ ]+$'
                 lastName:
                   type: string
                   description: Last name of the candidate
                   minLength: 2
-                  maxLength: 50
+                  maxLength: 100
                   pattern: '^[a-zA-ZñÑáéíóúÁÉÍÓÚ ]+$'
                 email:
                   type: string

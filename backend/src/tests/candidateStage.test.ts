@@ -90,4 +90,30 @@ describe('updateCandidateStage', () => {
     });
     expect(mockPrismaApplication.update).not.toHaveBeenCalled();
   });
+
+  test('updates only the specified application when candidate has multiple applications', async () => {
+    mockPrismaCandidate.findUnique.mockResolvedValue(mockCandidate);
+    mockPrismaApplication.findFirst.mockResolvedValue(mockApplication);
+    mockPrismaInterviewStep.findFirst.mockResolvedValue(mockStep);
+    mockPrismaApplication.update.mockResolvedValue(mockUpdated);
+
+    const result = await updateCandidateStage(candidateId, applicationId, newStepId);
+
+    expect(result).toEqual({
+      id: 5,
+      candidateId: 1,
+      positionId: 2,
+      currentInterviewStep: { id: 4, name: 'HR Interview' },
+    });
+    // Verifies the DB update targets exactly the requested applicationId
+    expect(mockPrismaApplication.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: applicationId } })
+    );
+    // Verifies findFirst was scoped to the candidateId (multi-application isolation)
+    expect(mockPrismaApplication.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: applicationId, candidateId }),
+      })
+    );
+  });
 });

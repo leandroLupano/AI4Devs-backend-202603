@@ -99,4 +99,24 @@ describe('getPositionCandidates', () => {
       status: 404,
     });
   });
+
+  test('returns averageScore excluding null scores from mixed interviews', async () => {
+    const appsWithMixedScores = [
+      {
+        id: 4,
+        candidateId: 10,
+        candidate: { firstName: 'John', lastName: 'Doe' },
+        interviewStep: { id: 3, name: 'Technical Interview' },
+        interviews: [{ score: 8 }, { score: null }, { score: 6 }],
+      },
+    ];
+    (prisma.position.findUnique as jest.Mock).mockResolvedValue({
+      ...mockPosition,
+      applications: appsWithMixedScores,
+    });
+
+    const result = await getPositionCandidates(positionId);
+
+    expect(result[0].averageScore).toBe(7);
+  });
 });
